@@ -16,6 +16,8 @@ export SHELLOPTS
 DEPOT_TOOLS_DIR=$1
 WEBRTC_DIR=$2
 
+HOST_ARCH=$(uname -m)
+
 WEBRTC_REVISION="$(<$PROJECT_DIR/resources/WebRTC-revision.txt)"
 
 if [ -z "$WEBRTC_REVISION" ]; then
@@ -39,8 +41,13 @@ mvn compile # Build SimpleJNI jnigen headers
 "$PROJECT_DIR/resources/checkout-webrtc.sh" "$DEPOT_TOOLS_DIR" "$WEBRTC_DIR" "$WEBRTC_REVISION"
 
 for ARCH in "${ARCHS[@]}"; do
-    if test "$ARCH" = "ppc64le"; then
-        MAKEFILE_ARGUMENT=BUILD_DCSCTP_WITH_MAKEFILE
+    if test "$HOST_ARCH" = "ppc64le"; then
+        if test "$ARCH" = "ppc64le"; then
+            "$PROJECT_DIR/resources/ubuntu-build.sh" "$JAVA_HOME" "$DEPOT_TOOLS_DIR" "$WEBRTC_DIR" "$ARCH" "$MAKEFILE_ARGUMENT"
+        else
+           echo "Skipping build for arch $ARCH on OpenPOWER host"
+        fi
+    else
+        "$PROJECT_DIR/resources/ubuntu-build.sh" "$JAVA_HOME" "$DEPOT_TOOLS_DIR" "$WEBRTC_DIR" "$ARCH" "$MAKEFILE_ARGUMENT"
     fi
-    "$PROJECT_DIR/resources/ubuntu-build.sh" "$JAVA_HOME" "$DEPOT_TOOLS_DIR" "$WEBRTC_DIR" "$ARCH" "$MAKEFILE_ARGUMENT"
 done

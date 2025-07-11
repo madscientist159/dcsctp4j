@@ -16,6 +16,8 @@ DEPOT_TOOLS_DIR=$1
 WEBRTC_DIR=$2
 REV=$3
 
+HOST_ARCH=$(uname -m)
+
 STARTDIR=$PWD
 
 if test -d "$DEPOT_TOOLS_DIR"; then
@@ -54,5 +56,10 @@ else
     fetch --nohooks webrtc
 fi
 
-gclient sync -r $REV -D
+if test "$HOST_ARCH" = "ppc64le"; then
+    # gclient attempts to pull and execute Google binaries, failure is expected on ppc64le
+    gclient sync -r $REV -D || true
+else
+    gclient sync -r $REV -D
+fi
 
